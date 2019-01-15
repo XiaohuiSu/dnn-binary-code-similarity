@@ -1,3 +1,4 @@
+#-*-coding=utf-8-*-
 import tensorflow as tf
 print tf.__version__
 #import matplotlib.pyplot as plt
