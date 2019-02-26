@@ -1,10 +1,8 @@
+# -*- coding: utf-8 -*-
 import tensorflow as tf
 print tf.__version__
 #import matplotlib.pyplot as plt
-import numpy as np
-from datetime import datetime
-from graphnnSiamese import graphnn
-from utils import *
+from packag.utils import *
 import os
 import argparse
 import json
@@ -133,9 +131,13 @@ if __name__ == '__main__':
     gnn.init(LOAD_PATH, LOG_PATH)
 
     # Test
-    val_auc, fpr, tpr, thres = get_auc_epoch(
+    val_auc, fpr, tpr, thres, posAcu, pos1Acu = get_auc_epoch(
             gnn, Gs_dev, classes_dev, BATCH_SIZE, load_data=valid_epoch)
     gnn.say( "AUC on validation set: {}".format(val_auc) )
-    test_auc, fpr, tpr, thres = get_auc_epoch(
+    gnn.say("总体准确率: {}".format(posAcu))
+    gnn.say("正样本中的准确率: {}".format(pos1Acu))
+    test_auc, fpr, tpr, thres, posAcu, pos1Acu = get_auc_epoch(
             gnn, Gs_test, classes_test, BATCH_SIZE, load_data=test_epoch)
     gnn.say( "AUC on testing set: {}".format(test_auc) )
+    gnn.say("总体准确率: {}".format(posAcu))
+    gnn.say("正样本中的准确率: {}".format(pos1Acu))

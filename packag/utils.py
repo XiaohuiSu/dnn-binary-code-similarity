@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 #import matplotlib.pyplot as plt
 from sklearn.metrics import auc, roc_curve
@@ -66,15 +68,21 @@ def read_graph(F_NAME, FUNC_NAME_DICT, FEATURE_DIM):
     graphs = []
     classes = []
     if FUNC_NAME_DICT != None:
+      
         for f in range(len(FUNC_NAME_DICT)):
             classes.append([])
 
     for f_name in F_NAME:
         with open(f_name) as inf:
             for line in inf:
+
                 g_info = json.loads(line.strip())
+                # label表示每一个函数出现的次序
                 label = FUNC_NAME_DICT[g_info['fname']]
+                # classes数组的下标对应一个函数，下标即是次序
+                # 数组中的每一个元素对应的数组是该函数的不同平台编译的ACFG图的ID
                 classes[label].append(len(graphs))
+                # cur_graph存储顶点以及顶点之间边的信息
                 cur_graph = graph(g_info['n_num'], label, g_info['src'])
                 for u in range(g_info['n_num']):
                     cur_graph.features[u] = np.array(g_info['features'][u])
@@ -111,7 +119,6 @@ def partition_data(Gs, classes, partitions, perm):
 def generate_epoch_pair(Gs, classes, M, output_id = False, load_id = None):
     epoch_data = []
     id_data = []   # [ ([(G0,G1),(G0,G1), ...], [(G0,H0),(G0,H0), ...]), ... ]
-
     if load_id is None:
         st = 0
         while st < len(Gs):
@@ -137,18 +144,21 @@ def generate_epoch_pair(Gs, classes, M, output_id = False, load_id = None):
 
 def get_pair(Gs, classes, M, st = -1, output_id = False, load_id = None):
     if load_id is None:
+        # 所有函数的数量
         C = len(classes)
 
         if (st + M > len(Gs)):
             M = len(Gs) - st
         ed = st + M
-
+        # 正样本对
         pos_ids = [] # [(G_0, G_1)]
         neg_ids = [] # [(G_0, H_0)]
 
         for g_id in range(st, ed):
             g0 = Gs[g_id]
+            # cls代表g0代表的函数的次序
             cls = g0.label
+            # tot_g表示该函数对应的ACFGS的个数
             tot_g = len(classes[cls])
             if (len(classes[cls]) >= 2):
                 g1_id = classes[cls][np.random.randint(tot_g)]
@@ -164,9 +174,10 @@ def get_pair(Gs, classes, M, st = -1, output_id = False, load_id = None):
             h_id = classes[cls2][np.random.randint(tot_g2)]
             neg_ids.append( (g_id, h_id) )
     else:
+        # 正反例集合
         pos_ids = load_id[0]
         neg_ids = load_id[1]
-        
+     # 正例和反例的个数
     M_pos = len(pos_ids)
     M_neg = len(neg_ids)
     M = M_pos + M_neg
@@ -189,9 +200,11 @@ def get_pair(Gs, classes, M, st = -1, output_id = False, load_id = None):
     
     for i in range(M_pos):
         y_input[i] = 1
+        # 找到两个index对应的图
         g1 = Gs[pos_ids[i][0]]
         g2 = Gs[pos_ids[i][1]]
         for u in range(g1.node_num):
+            # X1的每一行代表着一个图
             X1_input[i, u, :] = np.array( g1.features[u] )
             for v in g1.succs[u]:
                 node1_mask[i, u, v] = 1
@@ -230,27 +243,39 @@ def train_epoch(model, graphs, classes, batch_size, load_data=None):
     for index in perm:
         cur_data = epoch_data[index]
         X1, X2, mask1, mask2, y = cur_data
+        # mask 代表图的连接情况
         loss = model.train(X1, X2, mask1, mask2, y)
         cum_loss += loss
 
     return cum_loss / len(perm)
 
-
-def get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
+# 输出每一个epoch后的auc值
+def  get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
     tot_diff = []
     tot_truth = []
-
+    sum = 0
+    posNum = 0
+    pos1Num = 0
     if load_data is None:
         epoch_data= generate_epoch_pair(graphs, classes, batch_size)
     else:
         epoch_data = load_data
 
-
+    i = 0
     for cur_data in epoch_data:
         X1, X2, m1, m2,y  = cur_data
         diff = model.calc_diff(X1, X2, m1, m2)
-    #    print diff
-
+        Len = len(diff)
+        while(i < Len):
+            if(diff[i] * y[Len - i - 1] >= 0):
+                posNum += 1
+                if(diff[i] > 0 and y[Len - i - 1] == 1):
+                    pos1Num += 1
+            i += 1
+        print diff
+        i = 0
+        print y
+        sum += Len
         tot_diff += list(diff)
         tot_truth += list(y > 0)
 
@@ -260,5 +285,6 @@ def get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
 
     fpr, tpr, thres = roc_curve(truth, (1-diff)/2)
     model_auc = auc(fpr, tpr)
-
-    return model_auc, fpr, tpr, thres
+    posACu = posNum / float(sum)
+    pos1Acu = (pos1Num * 2) / float(sum)
+    return model_auc, fpr, tpr, thres, posACu, pos1Acu
