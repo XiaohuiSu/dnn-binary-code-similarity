@@ -141,3 +141,7 @@ if __name__ == '__main__':
     gnn.say( "AUC on testing set: {}".format(test_auc) )
     gnn.say("总体准确率: {}".format(posAcu))
     gnn.say("正样本中的准确率: {}".format(pos1Acu))
+
+    with tf.Session() as sess:
+        writer = tf.summary.FileWriter('./graphs', sess.graph)
+    writer.close()
