@@ -1,7 +1,5 @@
 #-*-coding=utf-8-*-
 
-
-
 import tensorflow as tf
 print tf.__version__
 #import matplotlib.pyplot as plt
@@ -118,6 +116,7 @@ if __name__ == '__main__':
 
             valid_ids = json.load(inf)
             # 生成一个epoch周期的验证数据集
+
         valid_epoch = generate_epoch_pair(
                 Gs_dev, classes_dev, BATCH_SIZE, load_id=valid_ids)
     else:

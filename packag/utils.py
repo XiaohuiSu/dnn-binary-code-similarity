@@ -49,6 +49,7 @@ class graph(object):
         self.preds.append([])
         
     def add_edge(self, u, v):
+
         self.succs[u].append(v)
         self.preds[v].append(u)
 
@@ -177,25 +178,34 @@ def get_pair(Gs, classes, M, st = -1, output_id = False, load_id = None):
         # 正反例集合
         pos_ids = load_id[0]
         neg_ids = load_id[1]
+
      # 正例和反例的个数
     M_pos = len(pos_ids)
+
     M_neg = len(neg_ids)
+
+    # 两个集合的总长度为M
     M = M_pos + M_neg
 
     maxN1 = 0
     maxN2 = 0
     for pair in pos_ids:
+        # 取正例ACFG图的顶点数目的最大值
         maxN1 = max(maxN1, Gs[pair[0]].node_num)
         maxN2 = max(maxN2, Gs[pair[1]].node_num)
     for pair in neg_ids:
+
         maxN1 = max(maxN1, Gs[pair[0]].node_num)
         maxN2 = max(maxN2, Gs[pair[1]].node_num)
 
     feature_dim = len(Gs[0].features[0])
+    # 一共十对数据，其中左边十个输入作为第一个网络的输入
+    # 右边十个数据作为第二个网络的输入
     X1_input = np.zeros((M, maxN1, feature_dim))
     X2_input = np.zeros((M, maxN2, feature_dim))
     node1_mask = np.zeros((M, maxN1, maxN1))
     node2_mask = np.zeros((M, maxN2, maxN2))
+    # y为标签
     y_input = np.zeros((M))
     
     for i in range(M_pos):
@@ -267,12 +277,12 @@ def  get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
         diff = model.calc_diff(X1, X2, m1, m2)
         Len = len(diff)
         while(i < Len):
-            if(diff[i] * y[Len - i - 1] >= 0):
+            if(diff[i] * y[i] < 0):
                 posNum += 1
-                if(diff[i] > 0 and y[Len - i - 1] == 1):
+                if(diff[i] < 0 and y[i] > 0):
                     pos1Num += 1
             i += 1
-        print diff
+        print -diff
         i = 0
         print y
         sum += Len

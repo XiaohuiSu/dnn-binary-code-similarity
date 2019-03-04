@@ -99,6 +99,7 @@ if __name__ == '__main__':
     if os.path.isfile('data/valid.json'):
         with open('data/valid.json') as inf:
             valid_ids = json.load(inf)
+          
         valid_epoch = generate_epoch_pair(
                 Gs_dev, classes_dev, BATCH_SIZE, load_id=valid_ids)
     else:
@@ -142,6 +143,6 @@ if __name__ == '__main__':
     gnn.say("总体准确率: {}".format(posAcu))
     gnn.say("正样本中的准确率: {}".format(pos1Acu))
 
-    with tf.Session() as sess:
-        writer = tf.summary.FileWriter('./graphs', sess.graph)
-    writer.close()
+    # with tf.Session() as sess:
+    #     writer = tf.summary.FileWriter('./graphs', sess.graph)
+    # writer.close()
