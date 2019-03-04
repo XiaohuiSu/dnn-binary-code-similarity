@@ -12,7 +12,7 @@ def graph_embed(X, msg_mask, N_x, N_embed, N_o, iter_level, Wnode, Wembed, W_out
     # 每个ACFGS图的每一个顶点向量与Wnode权重矩阵相乘，得到 一个三维的矩阵node_val
     node_val = tf.reshape(tf.matmul( tf.reshape(X, [-1, N_x]) , Wnode),
             [tf.shape(X)[0], -1, N_embed])
-    
+    # 相当于第0次迭代的嵌入
     cur_msg = tf.nn.relu(node_val)   #[batch, node_num, embed_dim]
     for t in range(iter_level):
         #Message convey
@@ -27,6 +27,7 @@ def graph_embed(X, msg_mask, N_x, N_embed, N_o, iter_level, Wnode, Wembed, W_out
                 cur_info = tf.matmul(cur_info, Wi)
             else:
                 cur_info = tf.nn.relu(tf.matmul(cur_info, Wi))
+        # 学习邻接边的结果
         neigh_val_t = tf.reshape(cur_info, tf.shape(Li_t))
         #Adding
         tot_val_t = node_val + neigh_val_t
