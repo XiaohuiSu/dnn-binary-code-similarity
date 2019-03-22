@@ -275,6 +275,7 @@ def  get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
     for cur_data in epoch_data:
         X1, X2, m1, m2,y  = cur_data
         diff = model.calc_diff(X1, X2, m1, m2)
+        #验证性能时打印的输出
         Len = len(diff)
         while(i < Len):
             if(diff[i] * y[i] < 0):
