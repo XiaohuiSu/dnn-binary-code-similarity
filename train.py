@@ -152,6 +152,7 @@ if __name__ == '__main__':
         gnn.say("EPOCH {3}/{0}, loss = {1} @ {2}".format(
             MAX_EPOCH, l, datetime.now(), i))
 
+        # 验证性能
         if (i % TEST_FREQ == 0):
             auc, fpr, tpr, thres = get_auc_epoch(gnn, Gs_train, classes_train,
                     BATCH_SIZE, load_data=valid_epoch)
