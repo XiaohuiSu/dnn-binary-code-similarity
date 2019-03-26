@@ -22,7 +22,7 @@ parser.add_argument('--iter_level', type=int, default=5,
         help='iteration times')
 parser.add_argument('--lr', type=float, default=1e-4,
         help='learning rate')
-parser.add_argument('--epoch', type=int, default=100,
+parser.add_argument('--epoch', type=int, default=50,
         help='epoch number')
 parser.add_argument('--batch_size', type=int, default=5,
         help='batch size')
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     gnn.say( "AUC on validation set: {}".format(val_auc) )
     gnn.say("总体准确率: {}".format(posAcu))
     gnn.say("正样本中的准确率: {}".format(pos1Acu))
-    test_auc, fpr, tpr, thres, posAcu, pos1Acu = get_auc_epoch(
+    test_auc, fpr, tpr, thres, posAcu, pos1Acu  = get_auc_epoch(
             gnn, Gs_test, classes_test, BATCH_SIZE, load_data=test_epoch)
     gnn.say( "AUC on testing set: {}".format(test_auc) )
     gnn.say("总体准确率: {}".format(posAcu))

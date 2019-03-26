@@ -6,7 +6,7 @@ import datetime
 from sklearn.metrics import roc_auc_score
 
 
-def graph_embed(X, msg_mask, N_x, N_embed, N_o, iter_level, Wnode, Wembed, W_output, b_output):
+def graph_embed(X, msg_mask, N_x, N_embed, N_o, iter_level, Wnode, Wembed, W_output, b_output, cell):
     #X -- affine(W1) -- ReLU -- (Message -- affine(W2) -- add (with aff W1)
     # -- ReLU -- )* MessageAll  --  output
     # 每个ACFGS图的每一个顶点向量与Wnode权重矩阵相乘，得到 一个三维的矩阵node_val
@@ -36,10 +36,18 @@ def graph_embed(X, msg_mask, N_x, N_embed, N_o, iter_level, Wnode, Wembed, W_out
         tot_msg_t = tf.nn.tanh(tot_val_t)
         # 一个矩阵，元素代表每一个ACFGS图的每个顶点在第i次迭代中的嵌入
         cur_msg = tot_msg_t   #[batch, node_num, embed_dim]
+
+
     # 按行求和
-    g_embed = tf.reduce_sum(cur_msg, 1)   #[batch, embed_dim]
+    #g_embed = tf.reduce_sum(cur_msg, 1)   #[batch, embed_dim]
+
+    outputs, last_states = tf.nn.dynamic_rnn(
+        cell=cell,
+        dtype=tf.float32,
+        inputs=cur_msg)
+
     # 最后输出又是一层
-    output = tf.matmul(g_embed, W_output) + b_output
+    output = tf.matmul(last_states, W_output) + b_output
 
     # 返回一个数组，元素为Batch中每一个ACFGS图的嵌入
     return output
@@ -79,16 +87,21 @@ class graphnn(object):
                                             #[B, N_node, N_node]
             self.X1 = X1
             self.msg1_mask = msg1_mask
+            # 在整个训练网络中加入G一层RU网络
+            rnn_hidden_size = 64
+            cell = tf.contrib.rnn.GRUCell(num_units=rnn_hidden_size)
+            self.cell = cell
+
             # 一个数组，十个元素，表示十个ACFGS图的嵌入
             embed1 = graph_embed(X1, msg1_mask, N_x, N_embed, N_o, ITER_LEVEL,
-                    Wnode, Wembed, W_output, b_output)  #[B, N_x]
+                    Wnode, Wembed, W_output, b_output, self.cell)  #[B, N_x]
 
             X2 = tf.placeholder(Dtype, [None, None, N_x])
             msg2_mask = tf.placeholder(Dtype, [None, None, None])
             self.X2 = X2
             self.msg2_mask = msg2_mask
             embed2 = graph_embed(X2, msg2_mask, N_x, N_embed, N_o, ITER_LEVEL,
-                    Wnode, Wembed, W_output, b_output)
+                    Wnode, Wembed, W_output, b_output, self.cell)
 
             label = tf.placeholder(Dtype, [None, ]) #same: 1; different:-1
             self.label = label
@@ -105,6 +118,8 @@ class graphnn(object):
 
             optimizer = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
             self.optimizer = optimizer
+
+
     
     def say(self, string):
         print string

@@ -188,7 +188,7 @@ def get_pair(Gs, classes, M, st = -1, output_id = False, load_id = None):
     M = M_pos + M_neg
 
     maxN1 = 0
-    maxN2 = 0
+    maxN2 = 0 #870
     for pair in pos_ids:
         # 取正例ACFG图的顶点数目的最大值
         maxN1 = max(maxN1, Gs[pair[0]].node_num)
@@ -283,9 +283,9 @@ def  get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
                 if(diff[i] < 0 and y[i] > 0):
                     pos1Num += 1
             i += 1
-        print -diff
+        #print -diff
         i = 0
-        print y
+        #print y
         sum += Len
         tot_diff += list(diff)
         tot_truth += list(y > 0)
