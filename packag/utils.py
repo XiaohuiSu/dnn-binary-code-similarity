@@ -276,17 +276,17 @@ def  get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
         X1, X2, m1, m2,y  = cur_data
         diff = model.calc_diff(X1, X2, m1, m2)
         #验证性能时打印的输出
-        Len = len(diff)
-        while(i < Len):
-            if(diff[i] * y[i] < 0):
-                posNum += 1
-                if(diff[i] < 0 and y[i] > 0):
-                    pos1Num += 1
-            i += 1
-        #print -diff
-        i = 0
-        #print y
-        sum += Len
+        # Len = len(diff)
+        # while(i < Len):
+        #     if(diff[i] * y[i] < 0):
+        #         posNum += 1
+        #         if(diff[i] < 0 and y[i] > 0):
+        #             pos1Num += 1
+        #     i += 1
+        # #print -diff
+        # i = 0
+        # #print y
+        # sum += Len
         tot_diff += list(diff)
         tot_truth += list(y > 0)
 
@@ -296,6 +296,6 @@ def  get_auc_epoch(model, graphs, classes, batch_size, load_data=None):
 
     fpr, tpr, thres = roc_curve(truth, (1-diff)/2)
     model_auc = auc(fpr, tpr)
-    posACu = posNum / float(sum)
-    pos1Acu = (pos1Num * 2) / float(sum)
-    return model_auc, fpr, tpr, thres, posACu, pos1Acu
+    # posACu = posNum / float(sum)
+    # pos1Acu = (pos1Num * 2) / float(sum)
+    return model_auc, fpr, tpr, thres#, posACu, pos1Acu
